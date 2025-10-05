@@ -1,20 +1,13 @@
 
 import math
 from typing import Dict, List
-from PyQt6 import QtWidgets, QtGui, QtCore
+from PyQt6 import QtGui, QtCore
 
 NODE_WIDTH: int = 180
 NODE_HEIGHT: int = 150
 HEADER_HEIGHT: int = 30
 RADIUS: int = 6
 ANCHOR_RADIUS: int = 6
-
-COLORS: Dict[str, QtGui.QColor] = {
-    "unit_0": QtGui.QColor(255, 180, 120),   # orange clair
-    "unit_1": QtGui.QColor(120, 200, 255),   # bleu
-    "unit_2": QtGui.QColor(180, 255, 120),   # vert
-    "unit_3": QtGui.QColor(200, 120, 255),   # violet
-}
 
 
 def draw_bezier(painter: QtGui.QPainter, p1: QtCore.QPointF, p2: QtCore.QPointF, switch: bool = False) -> None:
