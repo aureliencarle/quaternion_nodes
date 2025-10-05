@@ -65,7 +65,7 @@ class Number(QtWidgets.QGraphicsItem):
     def _draw_internal_wiring(self, painter: QtGui.QPainter, conns: List[Tuple[int, int, bool]]) -> None:
         painter.setBrush(QtCore.Qt.BrushStyle.NoBrush)
 
-        for i, (inp_idx, out_idx, switch) in enumerate(conns):
+        for inp_idx, out_idx, switch in conns:
             pen = QtGui.QPen()
             pen.setWidth(2)
             if self.input_activity[inp_idx]:
