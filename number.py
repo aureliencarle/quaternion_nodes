@@ -1,10 +1,11 @@
+from __future__ import annotations
+from typing import List, Optional, Tuple, Any
 from utils import *
 
 from PyQt6 import QtWidgets, QtGui, QtCore
 
-
 class Anchor:
-    def __init__(self, node, kind, name, x, y):
+    def __init__(self, node: Number, kind: str, name: str, x: float, y: float):
         self.node = node
         self.kind = kind  # 'input' or 'output'
         self.name = name  # 'real' or 'complex'
@@ -22,25 +23,26 @@ class Anchor:
 
 
 class Number(QtWidgets.QGraphicsItem):
-    def __init__(self, parent=None):
+    def __init__(self, parent: Optional[QtWidgets.QGraphicsItem] = None) -> None:
         super().__init__(parent)
-        self.rect = QtCore.QRectF(0, 0, NODE_WIDTH, NODE_HEIGHT)
+        self.rect: QtCore.QRectF = QtCore.QRectF(0, 0, NODE_WIDTH, NODE_HEIGHT)
         self.setFlags(
             QtWidgets.QGraphicsItem.GraphicsItemFlag.ItemIsMovable
             | QtWidgets.QGraphicsItem.GraphicsItemFlag.ItemIsSelectable
             | QtWidgets.QGraphicsItem.GraphicsItemFlag.ItemSendsGeometryChanges
         )
         self.setAcceptHoverEvents(True)
-        self._bg_brush = QtGui.QBrush(QtGui.QColor(40, 40, 40))
-        self._header_brush = QtGui.QBrush(QtGui.QColor(60, 60, 60))
-        self._pen = QtGui.QPen(QtGui.QColor(20, 20, 20))
+        self._bg_brush: QtGui.QBrush = QtGui.QBrush(QtGui.QColor(40, 40, 40))
+        self._header_brush: QtGui.QBrush = QtGui.QBrush(QtGui.QColor(60, 60, 60))
+        self._pen: QtGui.QPen = QtGui.QPen(QtGui.QColor(20, 20, 20))
+        self.title: str = ""
 
-        self.inputs = []
-        self.outputs = []
-        self.input_activity = []
-        self.active_internal = False  # True si une entrée est connectée
+        self.inputs: List[Anchor] = []
+        self.outputs: List[Anchor] = []
+        self.input_activity: List[bool] = []
+        self.active_internal: bool = False  # True si une entrée est connectée
 
-    def _build_anchor(self, dimension):
+    def _build_anchor(self, dimension: int) -> None:
         h = self.rect.height()
         step = h / (dimension + 1)
 
@@ -60,10 +62,10 @@ class Number(QtWidgets.QGraphicsItem):
         ]
         self.input_activity = [False for _ in self.inputs]
 
-    def _draw_internal_wiring(self, painter, conns):
+    def _draw_internal_wiring(self, painter: QtGui.QPainter, conns: List[Tuple[int, int, bool]]) -> None:
         painter.setBrush(QtCore.Qt.BrushStyle.NoBrush)
 
-        for i, (inp_idx, out_idx, switch) in enumerate(conns):
+        for inp_idx, out_idx, switch in conns:
             pen = QtGui.QPen()
             pen.setWidth(2)
             if self.input_activity[inp_idx]:
@@ -78,7 +80,7 @@ class Number(QtWidgets.QGraphicsItem):
                 switch=switch,
             )
 
-    def paint(self, painter, option, widget=None):
+    def paint(self, painter: QtGui.QPainter, option: QtWidgets.QStyleOptionGraphicsItem, widget: Optional[QtWidgets.QWidget] = None) -> None:
         painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
 
         # Ombre
@@ -131,14 +133,14 @@ class Number(QtWidgets.QGraphicsItem):
 
         self.draw_internal_wiring(painter)
 
-    def itemChange(self, change, value):
+    def itemChange(self, change: QtWidgets.QGraphicsItem.GraphicsItemChange, value: Any) -> Any:
         if change == QtWidgets.QGraphicsItem.GraphicsItemChange.ItemPositionHasChanged:
             for anchor in self.inputs + self.outputs:
                 for conn in anchor.connections:
                     conn.update_path()
         return super().itemChange(change, value)
 
-    def boundingRect(self):
+    def boundingRect(self) -> QtCore.QRectF:
         return self.rect.adjusted(-2, -2, 2, 2)
 
     def draw_internal_wiring(self, painter):
@@ -146,23 +148,24 @@ class Number(QtWidgets.QGraphicsItem):
 
 
 class Real(Number):
-    def __init__(self, title="Real", parent=None):
+    def __init__(self, title: str = "Real", parent: Optional[QtWidgets.QGraphicsItem] = None):
         super().__init__(parent)
         self.title = title
         h = self.rect.height()
         step = h / 2
 
-        self.inputs = [Anchor(self, "input", "univ", ANCHOR_RADIUS / 2, step)]
+        self.inputs = [Anchor(self, "input", "unit_0", ANCHOR_RADIUS / 2, step)]
         self.outputs = [
-            Anchor(self, "output", "univ", self.rect.width() - ANCHOR_RADIUS / 2, step)
+            Anchor(self, "output", "unit_0", self.rect.width() - ANCHOR_RADIUS / 2, step)
         ]
+        self.input_activity = [False for _ in self.inputs]
 
 
 class RealUnit(Real):
     def __init__(self):
         super().__init__("1")
 
-    def draw_internal_wiring(self, painter):
+    def draw_internal_wiring(self, painter: QtGui.QPainter) -> None:
         pen = QtGui.QPen(QtGui.QColor(180, 180, 180))
         pen.setWidth(2)
         painter.setPen(pen)
@@ -172,7 +175,7 @@ class RealUnit(Real):
 
 
 class ComplexUnit(Number):
-    def __init__(self, title="Complex", parent=None):
+    def __init__(self, title: str = "Complex", parent: Optional[QtWidgets.QGraphicsItem] = None):
         super().__init__(parent)
         self.title = title
         self._build_anchor(2)
@@ -182,7 +185,7 @@ class ComplexUnit1(ComplexUnit):
     def __init__(self):
         super().__init__("1")
 
-    def draw_internal_wiring(self, painter):
+    def draw_internal_wiring(self, painter: QtGui.QPainter) -> None:
         conns = [
             (0, 1, False), # in, out, switch
             (1, 0, False),
@@ -193,7 +196,7 @@ class ComplexUnitI(ComplexUnit):
     def __init__(self):
         super().__init__("i")
 
-    def draw_internal_wiring(self, painter):
+    def draw_internal_wiring(self, painter: QtGui.QPainter) -> None:
         conns = [
             (0, 1, False), # in, out, switch
             (1, 0, True),
@@ -205,7 +208,7 @@ class ComplexUnitI(ComplexUnit):
 
 
 class QuaternionUnit(Number):
-    def __init__(self, title="Quaternion", parent=None):
+    def __init__(self, title: str = "Quaternion", parent: Optional[QtWidgets.QGraphicsItem] = None):
         super().__init__(parent)
         self.title = title
         self._build_anchor(4)
@@ -215,7 +218,7 @@ class QuaternionUnit1(QuaternionUnit):
     def __init__(self):
         super().__init__("1")
 
-    def draw_internal_wiring(self, painter):
+    def draw_internal_wiring(self, painter: QtGui.QPainter) -> None:
         conns = [
             (0, 0, False), # in, out, switch
             (1, 1, False),
@@ -228,7 +231,7 @@ class QuaternionUnitI(QuaternionUnit):
     def __init__(self):
         super().__init__("i")
 
-    def draw_internal_wiring(self, painter):
+    def draw_internal_wiring(self, painter: QtGui.QPainter) -> None:
         conns = [
             (0, 1, False), # in, out, switch
             (1, 0, True),
@@ -242,7 +245,7 @@ class QuaternionUnitJ(QuaternionUnit):
     def __init__(self):
         super().__init__("j")
 
-    def draw_internal_wiring(self, painter):    
+    def draw_internal_wiring(self, painter: QtGui.QPainter) -> None:
         conns = [
             (0, 2, False), # in, out, switch
             (1, 3, True),
@@ -255,7 +258,7 @@ class QuaternionUnitK(QuaternionUnit):
     def __init__(self):
         super().__init__("k")
 
-    def draw_internal_wiring(self, painter):
+    def draw_internal_wiring(self, painter: QtGui.QPainter) -> None:
         conns = [
             (0, 3, False), # in, out, switch
             (1, 2, False),
