@@ -10,6 +10,7 @@
 # - Internal wiring of nodes uses Bezier curves
 
 import sys
+from typing import List, Optional, Type
 from PyQt6 import QtWidgets, QtGui, QtCore
 
 from utils import *
@@ -17,10 +18,10 @@ from number import *
 
 
 class ConnectionItem(QtWidgets.QGraphicsPathItem):
-    def __init__(self, src, dst, parent=None):
+    def __init__(self, src: Anchor, dst: Anchor, parent: Optional[QtWidgets.QGraphicsItem] = None) -> None:
         super().__init__(parent)
-        self.src = src
-        self.dst = dst
+        self.src: Anchor = src
+        self.dst: Anchor = dst
         pen = QtGui.QPen(QtGui.QColor(60, 160, 255))
         pen.setWidth(3)
         pen.setCapStyle(QtCore.Qt.PenCapStyle.RoundCap)
@@ -29,8 +30,7 @@ class ConnectionItem(QtWidgets.QGraphicsPathItem):
         self.setZValue(-1)
         self.update_path()
 
-
-    def remove(self):
+    def remove(self) -> None:
         # retirer la connexion des anchors
         if self in self.src.connections:
             self.src.connections.remove(self)
@@ -48,7 +48,7 @@ class ConnectionItem(QtWidgets.QGraphicsPathItem):
         if scene:
             scene.removeItem(self)
 
-    def update_path(self):
+    def update_path(self) -> None:
         if not (self.src.enabled and self.dst.enabled):
             self.setPath(QtGui.QPainterPath())  # vide
             return
@@ -66,25 +66,25 @@ class ConnectionItem(QtWidgets.QGraphicsPathItem):
 ##########################################################################################
 
 class NodeScene(QtWidgets.QGraphicsScene):
-    def __init__(self, parent=None):
+    def __init__(self, parent: Optional[QtWidgets.QGraphicsItem] = None) -> None:
         super().__init__(parent)
         self.setBackgroundBrush(QtGui.QBrush(QtGui.QColor(30, 30, 30)))
 
-        self.nodes = []
-        self.connections = []
+        self.nodes: List[Number] = []
+        self.connections: List[ConnectionItem] = []
 
         # Éléments d’état pour le drag de connexions
-        self.dragging_connection = None
-        self.drag_start_anchor = None
-        self.drag_start_node = None
+        self.dragging_connection: Optional[ConnectionItem] = None
+        self.drag_start_anchor: Optional[Anchor] = None
+        self.drag_start_node: Optional[Number] = None
 
         # Clipboard
-        self.clipboard_nodes = []
+        self.clipboard_nodes: List[Number] = []
 
     # ───────────────────────────────
     # NODE CREATION
     # ───────────────────────────────
-    def contextMenuEvent(self, event):
+    def contextMenuEvent(self, event: QtWidgets.QGraphicsSceneContextMenuEvent):
         """Menu contextuel pour ajouter des nodes."""
         pos = event.scenePos()
         item = self.itemAt(pos, QtGui.QTransform())
@@ -94,6 +94,7 @@ class NodeScene(QtWidgets.QGraphicsScene):
         menu = QtWidgets.QMenu()
         nodes = {
             "Real": Real,
+            "RealUnit": RealUnit,
             "ComplexUnit1": ComplexUnit1,
             "ComplexUnitI": ComplexUnitI,
             "QuaternionUnit1": QuaternionUnit1,
@@ -107,7 +108,7 @@ class NodeScene(QtWidgets.QGraphicsScene):
 
         menu.exec(event.screenPos())
 
-    def add_node(self, node_class, pos):
+    def add_node(self, node_class: Type[Number], pos: QtCore.QPointF) -> Number:
         """Ajoute un node à la scène."""
         node = node_class()
         node.setPos(pos - QtCore.QPointF(NODE_WIDTH / 2, NODE_HEIGHT / 2))
@@ -118,7 +119,7 @@ class NodeScene(QtWidgets.QGraphicsScene):
     # ───────────────────────────────
     # CONNECTION CREATION
     # ───────────────────────────────
-    def start_connection_from_anchor(self, anchor):
+    def start_connection_from_anchor(self, anchor: Anchor) -> None:
         """Commence un drag de connexion depuis un anchor."""
         self.drag_start_anchor = anchor
         self.dragging_connection = QtWidgets.QGraphicsPathItem()
@@ -128,7 +129,7 @@ class NodeScene(QtWidgets.QGraphicsScene):
         self.addItem(self.dragging_connection)
         self.views()[0].setDragMode(QtWidgets.QGraphicsView.DragMode.NoDrag)
 
-    def start_connection_from_node(self, node):
+    def start_connection_from_node(self, node: Number) -> None:
         """Commence un drag de connexion depuis un node (connect all)."""
         self.drag_start_node = node
         self.dragging_connection = QtWidgets.QGraphicsPathItem()
@@ -138,7 +139,7 @@ class NodeScene(QtWidgets.QGraphicsScene):
         self.addItem(self.dragging_connection)
         self.views()[0].setDragMode(QtWidgets.QGraphicsView.DragMode.NoDrag)
 
-    def update_drag_connection(self, pos):
+    def update_drag_connection(self, pos: QtCore.QPointF) -> None:
         """Met à jour la courbe de prévisualisation pendant le drag."""
         if not self.dragging_connection:
             return
@@ -163,8 +164,21 @@ class NodeScene(QtWidgets.QGraphicsScene):
 
         self.dragging_connection.setPath(path)
 
-    def add_connection(self, src_anchor, tgt_anchor):
+    def add_connection(self, src_anchor: Anchor, tgt_anchor: Anchor) -> None:
         """Ajoute une connexion valide entre deux anchors."""
+        # Check if connection already exists
+        for existing_conn in src_anchor.connections:
+            if existing_conn.dst == tgt_anchor:
+                return  # Connection already exists
+        
+        # Check if target input already has a connection (inputs should typically have only one)
+        if tgt_anchor.kind == "input" and tgt_anchor.connections:
+            # Remove existing connection to input before adding new one
+            for old_conn in list(tgt_anchor.connections):
+                old_conn.remove()
+                if old_conn in self.connections:
+                    self.connections.remove(old_conn)
+        
         conn = ConnectionItem(src_anchor, tgt_anchor)
         self.addItem(conn)
         self.connections.append(conn)
@@ -176,7 +190,7 @@ class NodeScene(QtWidgets.QGraphicsScene):
         src_anchor.update_node_state()
         tgt_anchor.update_node_state()
 
-    def finalize_connection(self, pos):
+    def finalize_connection(self, pos: QtCore.QPointF) -> None:
         """Termine une connexion après un drag."""
         if not self.dragging_connection:
             return
@@ -195,17 +209,26 @@ class NodeScene(QtWidgets.QGraphicsScene):
                         and in_anchor.name == self.drag_start_anchor.name:
                         targets.append(in_anchor)
             elif self.drag_start_node:
-                for out_a, in_a in zip(self.drag_start_node.outputs, target_node.inputs):
+                # Only connect if both nodes have the same dimension
+                max_connections = min(len(self.drag_start_node.outputs), len(target_node.inputs))
+                for i in range(max_connections):
+                    out_a = self.drag_start_node.outputs[i]
+                    in_a = target_node.inputs[i]
                     if out_a.name == in_a.name:
                         targets.append(in_a)
 
         for tgt in targets:
-            src = (
-                self.drag_start_anchor
-                if self.drag_start_anchor
-                else next(o for o in self.drag_start_node.outputs if o.name == tgt.name)
-            )
-            self.add_connection(src, tgt)
+            try:
+                src = (
+                    self.drag_start_anchor
+                    if self.drag_start_anchor
+                    else next((o for o in self.drag_start_node.outputs if o.name == tgt.name), None)
+                )
+                if src:  # Only add connection if source anchor is found
+                    self.add_connection(src, tgt)
+            except StopIteration:
+                # Handle case where no matching output anchor is found
+                continue
 
         self.cleanup_drag_state()
 
@@ -221,7 +244,7 @@ class NodeScene(QtWidgets.QGraphicsScene):
     # ───────────────────────────────
     # MOUSE EVENTS
     # ───────────────────────────────
-    def mousePressEvent(self, event):
+    def mousePressEvent(self, event: QtWidgets.QGraphicsSceneMouseEvent):
         pos = event.scenePos()
 
         for node in self.nodes:
@@ -239,15 +262,15 @@ class NodeScene(QtWidgets.QGraphicsScene):
                     return
         super().mousePressEvent(event)
 
-    def mouseMoveEvent(self, event):
+    def mouseMoveEvent(self, event: QtWidgets.QGraphicsSceneMouseEvent) -> None:
         self.update_drag_connection(event.scenePos())
         super().mouseMoveEvent(event)
 
-    def mouseReleaseEvent(self, event):
+    def mouseReleaseEvent(self, event: QtWidgets.QGraphicsSceneMouseEvent) -> None:
         self.finalize_connection(event.scenePos())
         super().mouseReleaseEvent(event)
 
-    def mouseDoubleClickEvent(self, event):
+    def mouseDoubleClickEvent(self, event: QtWidgets.QGraphicsSceneMouseEvent) -> None:
         pos = event.scenePos()
         for node in self.nodes:
             title_rect = QtCore.QRectF(node.pos(), QtCore.QSizeF(node.rect.width(), HEADER_HEIGHT))
@@ -259,7 +282,7 @@ class NodeScene(QtWidgets.QGraphicsScene):
     # ───────────────────────────────
     # KEYBOARD EVENTS
     # ───────────────────────────────
-    def keyPressEvent(self, event):
+    def keyPressEvent(self, event: QtGui.QKeyEvent) -> None:
         key = event.key()
         mod = event.modifiers()
 
@@ -302,7 +325,7 @@ class NodeScene(QtWidgets.QGraphicsScene):
             n.setSelected(True)
 
 class NodeView(QtWidgets.QGraphicsView):
-    def __init__(self, scene, parent=None):
+    def __init__(self, scene: NodeScene, parent: Optional[QtWidgets.QWidget] = None):
         super().__init__(scene, parent)
         
         self.setRenderHints(
@@ -319,13 +342,13 @@ class NodeView(QtWidgets.QGraphicsView):
         self._panning = False
         self._last_pan_point = None
 
-    def wheelEvent(self, event):
+    def wheelEvent(self, event: QtGui.QWheelEvent) -> None:
         angle = event.angleDelta().y()
         factor = 1.001**angle
         self.scale(factor, factor)
 
     # ─────────────── PAN (clic milieu) ───────────────
-    def mousePressEvent(self, event):
+    def mousePressEvent(self, event: QtGui.QMouseEvent) -> None:
         if event.button() == QtCore.Qt.MouseButton.MiddleButton:
             self._panning = True
             self._last_pan_point = event.pos()
@@ -334,7 +357,7 @@ class NodeView(QtWidgets.QGraphicsView):
         else:
             super().mousePressEvent(event)
 
-    def mouseMoveEvent(self, event):
+    def mouseMoveEvent(self, event: QtGui.QMouseEvent) -> None:
         if event.button() == QtCore.Qt.MouseButton.MiddleButton:
             event.ignore()
             return
@@ -348,11 +371,11 @@ class NodeView(QtWidgets.QGraphicsView):
         else:
             super().mouseMoveEvent(event)
 
-    def mouseReleaseEvent(self, event):
+    def mouseReleaseEvent(self, event: QtGui.QMouseEvent) -> None:
         # Relâche le clic milieu
         if event.button() == QtCore.Qt.MouseButton.MiddleButton:
             self._panning = False
-            self._last_mouse_pos = None
+            self._last_pan_point = None
             self.setCursor(QtCore.Qt.CursorShape.ArrowCursor)
             event.accept()
         else:
@@ -370,16 +393,16 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setCentralWidget(self.view)
 
         # Instructions utilisateur
-        #instr = QtWidgets.QLabel(
-        #    "Double-clic gauche pour NodeType1, double-clic droit pour NodeType2.\n"
-        #    "Drag depuis un connecteur → connecte un seul couple.\n"
-        #    "Drag depuis le corps du node → connecte toutes les sorties aux entrées correspondantes d’un autre node."
-        #)
-        #instr.setStyleSheet("color: white; padding: 6px;")
-        #instr.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        instr = QtWidgets.QLabel(
+           "Double-clic gauche pour NodeType1, double-clic droit pour NodeType2.\n"
+           "Drag depuis un connecteur → connecte un seul couple.\n"
+           "Drag depuis le corps du node → connecte toutes les sorties aux entrées correspondantes d’un autre node."
+        )
+        instr.setStyleSheet("color: white; padding: 6px;")
+        instr.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
 
         dock = QtWidgets.QDockWidget("Instructions")
-        #dock.setWidget(instr)
+        dock.setWidget(instr)
         self.addDockWidget(QtCore.Qt.DockWidgetArea.TopDockWidgetArea, dock)
 
 
