@@ -10,12 +10,27 @@ RADIUS: int = 6
 ANCHOR_RADIUS: int = 6
 
 COLORS: Dict[str, QtGui.QColor] = {
-    "unit_0": QtGui.QColor(255, 180, 120),   # orange clair
-    "unit_1": QtGui.QColor(120, 200, 255),   # bleu
-    "unit_2": QtGui.QColor(180, 255, 120),   # vert
-    "unit_3": QtGui.QColor(200, 120, 255),   # violet
+    "unit_0":  QtGui.QColor(255, 180, 120),   # orange clair
+    "unit_1":  QtGui.QColor(120, 200, 255),   # bleu ciel
+    "unit_2":  QtGui.QColor(180, 255, 120),   # vert clair
+    "unit_3":  QtGui.QColor(200, 120, 255),   # violet clair
+    "unit_4":  QtGui.QColor(255, 230, 100),   # jaune orangé
+    "unit_5":  QtGui.QColor(100, 200, 100),   # vert moyen
+    "unit_6":  QtGui.QColor(255, 100, 100),   # rouge clair
+    "unit_7":  QtGui.QColor(100, 100, 255),   # bleu moyen
+    "unit_8":  QtGui.QColor(255, 150, 255),   # rose
+    "unit_9":  QtGui.QColor(150, 255, 150),   # vert très clair
+    "unit_10": QtGui.QColor(255, 200, 100),   # orange saumon
+    "unit_11": QtGui.QColor(100, 255, 200),   # turquoise clair
+    "unit_12": QtGui.QColor(200, 100, 200),   # mauve
+    "unit_13": QtGui.QColor(255, 255, 100),   # jaune pâle
+    "unit_14": QtGui.QColor(100, 150, 255),   # bleu azur
+    "unit_15": QtGui.QColor(200, 200, 100),   # jaune moutarde
+    "unit_16": QtGui.QColor(150, 100, 255),   # lavande
+    "unit_17": QtGui.QColor(255, 100, 200),   # rose vif
+    "unit_18": QtGui.QColor(100, 255, 100),   # vert fluo
+    "unit_19": QtGui.QColor(100, 200, 255),   # bleu pastel
 }
-
 
 def draw_bezier(painter: QtGui.QPainter, p1: QtCore.QPointF, p2: QtCore.QPointF, switch: bool = False) -> None:
     path = QtGui.QPainterPath()

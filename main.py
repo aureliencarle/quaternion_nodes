@@ -101,6 +101,14 @@ class NodeScene(QtWidgets.QGraphicsScene):
             "QuaternionUnitI": QuaternionUnitI,
             "QuaternionUnitJ": QuaternionUnitJ,
             "QuaternionUnitK": QuaternionUnitK,
+            "BiQuaternionUnit1": BiQuaternionUnit1,
+            "BiQuaternionUniti": BiQuaternionUniti,
+            "BiQuaternionUnitI": BiQuaternionUnitI,
+            "BiQuaternionUnitJ": BiQuaternionUnitJ,
+            "BiQuaternionUnitK": BiQuaternionUnitK,
+            "BiQuaternionUnitiI": BiQuaternionUnitiI,
+            "BiQuaternionUnitiJ": BiQuaternionUnitiJ,
+            "BiQuaternionUnitiK": BiQuaternionUnitiK,
         }
 
         for name, cls in nodes.items():

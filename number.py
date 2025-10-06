@@ -266,3 +266,153 @@ class QuaternionUnitK(QuaternionUnit):
             (3, 0, True),
         ]
         self._draw_internal_wiring(painter, conns)
+
+#############################################################################
+
+class BiQuaternionUnit(Number):
+    def __init__(self, title: str = "BiQuaternion", parent: Optional[QtWidgets.QGraphicsItem] = None):
+        super().__init__(parent)
+        self.title = title
+        self._build_anchor(8)
+
+
+
+
+class BiQuaternionUnit1(BiQuaternionUnit):
+    def __init__(self):
+        super().__init__("1")
+
+    def draw_internal_wiring(self, painter: QtGui.QPainter) -> None:
+        conns = [
+            (0, 0, False), # in, out, switch
+            (1, 1, False),
+            (2, 2, False),
+            (3, 3, False),
+            (4, 4, False),
+            (5, 5, False),
+            (6, 6, False),
+            (7, 7, False),
+        ]
+        self._draw_internal_wiring(painter, conns)
+
+class BiQuaternionUniti(BiQuaternionUnit):
+    def __init__(self):
+        super().__init__("i")
+
+    def draw_internal_wiring(self, painter: QtGui.QPainter) -> None:
+        conns = [
+            (0, 1, False), # in, out, switch
+            (1, 0, True),
+            (2, 5, False),
+            (3, 6, False),
+            (4, 7, False), 
+            (5, 2, True),
+            (6, 3, True),
+            (7, 4, True),
+        ]
+        self._draw_internal_wiring(painter, conns)
+
+class BiQuaternionUnitI(BiQuaternionUnit):
+    def __init__(self):
+        super().__init__("I")
+
+    def draw_internal_wiring(self, painter: QtGui.QPainter) -> None:
+        conns = [
+            (0, 2, False), # in, out, switch
+            (1, 5, False),
+            (2, 0, True),
+            (3, 4, False),
+            (4, 3, False), 
+            (5, 1, False),
+            (6, 7, True),
+            (7, 6, True),
+        ]
+        self._draw_internal_wiring(painter, conns)
+
+class BiQuaternionUnitiI(BiQuaternionUnit):
+    def __init__(self):
+        super().__init__("iI")
+
+    def draw_internal_wiring(self, painter: QtGui.QPainter) -> None:
+        conns = [
+            (0, 5, False), # in, out, switch
+            (1, 2, True),
+            (2, 1, True),
+            (3, 7, False),
+            (4, 6, True), 
+            (5, 0, True),
+            (6, 4, True),
+            (7, 3, False),
+        ]
+        self._draw_internal_wiring(painter, conns)
+
+class BiQuaternionUnitJ(BiQuaternionUnit):
+    def __init__(self):
+        super().__init__("J")
+
+    def draw_internal_wiring(self, painter: QtGui.QPainter) -> None:
+        conns = [
+            (0, 3, False),  # 1 * J = J
+            (1, 6, False),  # i * J = iJ
+            (2, 4, False),  # I * J = K
+            (3, 0, True),   # J * J = -1
+            (4, 2, True),   # K * J = -I
+            (5, 7, False),  # iI * J = iK
+            (6, 1, True),   # iJ * J = -i
+            (7, 5, True),   # iK * J = -iI
+        ]
+        self._draw_internal_wiring(painter, conns)
+
+
+class BiQuaternionUnitiJ(BiQuaternionUnit):
+    def __init__(self):
+        super().__init__("iJ")
+
+    def draw_internal_wiring(self, painter: QtGui.QPainter) -> None:
+        conns = [
+            (0, 6, False),  # 1 * iJ = iJ
+            (1, 3, True),   # i * iJ = -J
+            (2, 7, False),  # I * iJ = iK
+            (3, 1, False),  # J * iJ = i
+            (4, 5, False),  # K * iJ = iI
+            (5, 4, True),   # iI * iJ = -K
+            (6, 0, True),   # iJ * iJ = -1
+            (7, 2, True),   # iK * iJ = -I
+        ]
+        self._draw_internal_wiring(painter, conns)
+
+
+class BiQuaternionUnitK(BiQuaternionUnit):
+    def __init__(self):
+        super().__init__("K")
+
+    def draw_internal_wiring(self, painter: QtGui.QPainter) -> None:
+        conns = [
+            (0, 4, False),  # 1 * K = K
+            (1, 7, False),  # i * K = iK
+            (2, 3, True),   # I * K = -J
+            (3, 2, False),  # J * K = I
+            (4, 0, True),   # K * K = -1
+            (5, 6, False),  # iI * K = iJ
+            (6, 5, True),   # iJ * K = -iI
+            (7, 1, True),   # iK * K = -i
+        ]
+        self._draw_internal_wiring(painter, conns)
+
+
+class BiQuaternionUnitiK(BiQuaternionUnit):
+    def __init__(self):
+        super().__init__("iK")
+
+    def draw_internal_wiring(self, painter: QtGui.QPainter) -> None:
+        conns = [
+            (0, 7, False),  # 1 * iK = iK
+            (1, 4, True),   # i * iK = -K
+            (2, 6, True),   # I * iK = -iJ
+            (3, 5, False),  # J * iK = iI
+            (4, 1, False),  # K * iK = i
+            (5, 3, True),   # iI * iK = -J
+            (6, 2, False),  # iJ * iK = I
+            (7, 0, True),   # iK * iK = -1
+        ]
+        self._draw_internal_wiring(painter, conns)
