@@ -43,11 +43,11 @@ class Number(QtWidgets.QGraphicsItem):
         self.active_internal: bool = False  # True si une entrée est connectée
 
     def _build_anchor(self, dimension: int) -> None:
-        h = self.rect.height()
+        h = self.rect.height() - HEADER_HEIGHT
         step = h / (dimension + 1)
 
         self.inputs = [
-            Anchor(self, "input", f"unit_{i}", ANCHOR_RADIUS / 2, (i + 1) * step)
+            Anchor(self, "input", f"unit_{i}", ANCHOR_RADIUS / 2, HEADER_HEIGHT + (i + 1) * step)
             for i in range(dimension)
         ]
         self.outputs = [
@@ -56,7 +56,7 @@ class Number(QtWidgets.QGraphicsItem):
                 "output",
                 f"unit_{i}",
                 self.rect.width() - ANCHOR_RADIUS / 2,
-                (i + 1) * step,
+                HEADER_HEIGHT + (i + 1) * step,
             )
             for i in range(dimension)
         ]
